@@ -22,32 +22,34 @@ CRITERIA_FILL_LIST    = [5/6, 5/5, 5/4, 6/5, 6/4, 5/4]
 class Multicriteria:
 
     def __init__(self, params):
-# {
-#     "task_name": "Выбор спутницы жизни",
-#     "alternative_names": ["A. Татьяна", "B. Лариса", "C. Наталья", "D. Ольга"],
-#     "criteria_names": ["Внешность", "Финансовые запросы", "Домовитость", "Характер"],
-#     "criterias_weight": [5, 6, 5, 4],
-#     "criterias_direction": ["max", "min" ,"max" , "max"],
-#     "alternative_matrix": [
-#         [8, 7, 6, 3],
-#         [9, 4, 4, 8],
-#         [3, 5, 8, 5],
-#         [5, 8, 7, 1]
-#     ]
-# }
+        """
+        Переопределенный метод __init__
+        :params params: хеш таблица
+            :params alternative_names: названия альтернатив
+            :params criteria_names: названия криетриев
+            :params criteria_weight: веса критериев
+            :params criterias_direction: направления критериев(max, min)
+            :params alternative_matrix: альтернативная матрица
+        """
         self.alternative_names   = list(params['alternative_names'])
         self.criteria_names      = list(params['criteria_names'])
         self.criteria_weight     = np.array(params['criterias_weight'])
         self.criterias_directoin = np.array(params['criterias_direction'])
         self.alternative_matrix  = np.array(params['alternative_matrix'], float)
 
+        # нормализуем веса
         self.normalized_weight   = self.norming_vector(self.criteria_weight)
 
+        # нормализуем альтернативную матрицу
         self.normalized_matrix   = self.normalize_matrix(self.alternative_matrix)
 
 
     def maximize_alternative_matrix_criteria(self, alternative_matrix, criterias_direction):
-        """Своидит все криитерии к максимизации."""
+        """
+        Своидит все криитерии к максимизации.
+        :params alternative_matrix: Альтернативная матрица
+        :params criterias_direction: направление критерия(max, min)
+        """
         for j in range(len(criterias_direction)):
             if criterias_direction[j] == "min":
                 for i in range(alternative_matrix.shape[0]):
@@ -70,7 +72,7 @@ class Multicriteria:
     
     def normalize_matrix(self, matrix):
         """
-        Метод нормализует матрицу.
+        Метод нормализует матрицу. Не трогай столбец j=MAIN_CRITERIA_INDEX
         :params matrix: Матрица для нормализации
         """
 
@@ -82,12 +84,15 @@ class Multicriteria:
             if j != MAIN_CRITERIA_INDEX:
                 for i in range(matrix.shape[0]):
                     normalized_matrix[i][j] = (normalized_matrix[i][j] - minimums[j]) / (
-                            maximums[j] - minimums[j])
+                            maximums[j] - minimums[j])                                       ## (A[i,j]-A_min[j])/(A_max[j]-A_min[j])
 
         return normalized_matrix
     
     def out_matrix(self, matrix):
-        """Выводит матрицу альтернатив."""
+        """
+        Выводит матрицу альтернатив.
+        :params matrix: матрица альтернатив
+        """
         table = PrettyTable()
 
         table.field_names = ["Альтернативы"] + self.criteria_names
@@ -102,7 +107,9 @@ class Multicriteria:
         return table
 
     def out_weight(self):
-        """Выводит вектор весов критериев."""
+        """
+        Выводит вектор весов критериев.
+        """
         out = "Составляем веткор весов критериев, используя шкалу 1-10:\n"
         table = PrettyTable()
         table.field_names = self.criteria_names
@@ -115,7 +122,9 @@ class Multicriteria:
         return out
     
     def main_criteria_method(self):
-        """Решение методом главного критерия."""
+        """
+        Решение методом главного критерия.
+        """
         print("\n1) Метод замены критериев ограничениями (метод главного критерия).\n"
                 "Составим матрицу оценок альтернатив.")
         print(self.out_matrix(self.alternative_matrix))
@@ -201,7 +210,6 @@ class Multicriteria:
         plt.text(xValues.max() + 0.1, yValues.max() + 0.1, "Точка утопии")
 
         plt.show()
-        plt.savefig("pareto.png")
 
         min_index = min(enumerate(euclid_length), key=lambda x: x[1])[0]
 
@@ -211,7 +219,9 @@ class Multicriteria:
         )
 
     def normalize_by_columns(self, current_matrix):
-        """Нормализует колонки в матрице."""
+        """
+        Нормализует колонки в матрице.
+        """
         matrix = current_matrix.copy()
         for i in range(len(self.criteria_names)):
             col_sum = np.sum(matrix[i])
@@ -220,6 +230,10 @@ class Multicriteria:
         return matrix
 
     def criteria_evaluation(self, y12, y13, y14, y23, y24, y34):
+        """
+        Составляет матрицу экспертных оценок
+        :params yij: оценка критериев
+        """
         table = PrettyTable()
         table.field_names = [""] + self.criteria_names
         table.add_row([self.criteria_names[0]] + [0, y12, y13, y14])
@@ -230,7 +244,9 @@ class Multicriteria:
         return table
     
     def weight_and_combined_method(self):
-        """Решение методом взвешивания и объединения критериев."""
+        """
+        Решение методом взвешивания и объединения критериев.
+        """
         alternative_max_criteria_matrix = self.maximize_alternative_matrix_criteria(self.alternative_matrix, self.criterias_directoin)
 
         rating_matrix = self.normalize_by_columns(alternative_max_criteria_matrix)
@@ -270,6 +286,7 @@ class Multicriteria:
     def pair_compare_matrix(self, fill_list):
         """
         Заполянет матрицу попарных сравнений.
+        :params fill_list: массив из матриц попарных оценок для каждого критерияя
         """
         k = 0
         pc_matrix = np.ones((CRITERIA_COUNT, CRITERIA_COUNT))
@@ -293,6 +310,10 @@ class Multicriteria:
     def pair_compare_table(self, names, main_matrix, sum_col, normalize_sum_col):
         """
         Составляет таблицу с матрицей попарных сравнений
+        :params names: заголовки столбцов
+        :params main_matrix: матрица сравнения критериев
+        :params sum_col: сумма строки
+        :normalize_sum_col: сумма нормализованной строки
         """
         table = PrettyTable()
         table.field_names = [""] + names + ["Сумма по строке", "Нормированная сумма по строке"]
