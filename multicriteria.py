@@ -193,7 +193,7 @@ class Multicriteria:
         xValues = self.alternative_matrix[:, SECOND_CRITERIA_INDEX]
         yValues = self.alternative_matrix[:, THIRD_CRITERIA_INDEX]
         plt.grid()
-        plt.plot(xValues, yValues, "b")
+        plt.scatter(10, 10)
 
         euclid_length = []
         for i in range(len(self.alternative_matrix[:, SECOND_CRITERIA_INDEX])):
@@ -206,8 +206,8 @@ class Multicriteria:
 
             euclid_length.append(euclid_distance)
 
-        plt.plot(xValues.max(), yValues.max(), "rD")
-        plt.text(xValues.max() + 0.1, yValues.max() + 0.1, "Точка утопии")
+        plt.plot(10, 10, "rD")
+        plt.text(10 + 0.1, 10 + 0.1, "Точка утопии")
 
         plt.show()
 
